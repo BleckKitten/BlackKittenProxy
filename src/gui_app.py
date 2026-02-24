@@ -43,6 +43,9 @@ DEFAULT_CONFIG = {
     "auto_blacklist": False,
     "no_blacklist": False,
     "rules": [],
+    "mode": "custom",
+    "connect_timeout": None,
+    "initial_read_timeout": None,
 }
 
 _proxy_process = None
@@ -66,6 +69,7 @@ def load_config() -> dict:
     cfg["selected_lists"] = list(cfg.get("selected_lists", []))
     cfg["custom_domains"] = list(cfg.get("custom_domains", []))
     cfg["rules"] = list(cfg.get("rules", []))
+    cfg["mode"] = cfg.get("mode", "custom")
     if not cfg["selected_lists"] and UNLOCKED_DIR.exists():
         cfg["selected_lists"] = [p.stem for p in UNLOCKED_DIR.glob("*.txt")]
     return cfg
@@ -94,6 +98,28 @@ def normalize_rule(rule: dict) -> dict:
         "action": action,
         "fragment_method": method or None,
     }
+
+
+def apply_mode(cfg: dict) -> dict:
+    mode = str(cfg.get("mode", "custom")).lower()
+    result = dict(cfg)
+    if mode == "fast":
+        result["fragment_method"] = "random"
+        result["domain_matching"] = "loose"
+    elif mode == "balanced":
+        result["fragment_method"] = "random"
+        result["domain_matching"] = "strict"
+    elif mode == "strict":
+        result["fragment_method"] = "sni"
+        result["domain_matching"] = "strict"
+    elif mode == "stealth":
+        result["fragment_method"] = "split-jitter"
+        result["domain_matching"] = "strict"
+        result["auto_blacklist"] = True
+        result["no_blacklist"] = False
+        result["connect_timeout"] = 3.0
+        result["initial_read_timeout"] = 3.0
+    return result
 
 
 def validate_host(value: str) -> bool:
@@ -331,19 +357,20 @@ def start_proxy(cfg: dict) -> dict:
     with _proxy_lock:
         if _proxy_process and _proxy_process.poll() is None:
             return {"running": True, "message": "Already running"}
-        if not validate_host(cfg.get("host", "")) or not validate_port(cfg.get("port", 0)):
+        effective = apply_mode(cfg)
+        if not validate_host(effective.get("host", "")) or not validate_port(effective.get("port", 0)):
             return {"running": False, "message": "Invalid host/port"}
-        if not port_available(cfg.get("host", "127.0.0.1"), int(cfg.get("port", 8881))):
+        if not port_available(effective.get("host", "127.0.0.1"), int(effective.get("port", 8881))):
             return {"running": False, "message": "Port is already in use"}
-        build_blacklist(cfg)
+        build_blacklist(effective)
         LOG_DIR.mkdir(exist_ok=True)
         command = [
             sys.executable,
             str(ROOT / "src" / "main.py"),
             "--host",
-            cfg["host"],
+            effective["host"],
             "--port",
-            str(cfg["port"]),
+            str(effective["port"]),
             "--blacklist",
             str(GUI_BLACKLIST_PATH),
             "--stats-file",
@@ -351,14 +378,18 @@ def start_proxy(cfg: dict) -> dict:
             "--rules-file",
             str(GUI_RULES_PATH),
         ]
-        if cfg.get("fragment_method"):
-            command += ["--fragment-method", cfg["fragment_method"]]
-        if cfg.get("domain_matching"):
-            command += ["--domain-matching", cfg["domain_matching"]]
-        if cfg.get("auto_blacklist"):
+        if effective.get("fragment_method"):
+            command += ["--fragment-method", effective["fragment_method"]]
+        if effective.get("domain_matching"):
+            command += ["--domain-matching", effective["domain_matching"]]
+        if effective.get("auto_blacklist"):
             command.append("--autoblacklist")
-        if cfg.get("no_blacklist"):
+        if effective.get("no_blacklist"):
             command.append("--no-blacklist")
+        if effective.get("connect_timeout"):
+            command += ["--connect-timeout", str(effective["connect_timeout"])]
+        if effective.get("initial_read_timeout"):
+            command += ["--initial-read-timeout", str(effective["initial_read_timeout"])]
         command += ["--log-access", str(LOG_ACCESS_PATH), "--log-error", str(LOG_ERROR_PATH)]
         creationflags = 0
         if sys.platform == "win32":
@@ -579,6 +610,7 @@ class UIHandler(BaseHTTPRequestHandler):
             domain_matching = payload.get("domain_matching")
             auto_blacklist = payload.get("auto_blacklist")
             no_blacklist = payload.get("no_blacklist")
+            mode = payload.get("mode")
             rules = payload.get("rules")
 
             if host:
@@ -604,6 +636,8 @@ class UIHandler(BaseHTTPRequestHandler):
                 cfg["auto_blacklist"] = auto_blacklist
             if isinstance(no_blacklist, bool):
                 cfg["no_blacklist"] = no_blacklist
+            if mode:
+                cfg["mode"] = str(mode)
             if cfg.get("auto_blacklist") and cfg.get("no_blacklist"):
                 # prefer explicit no_blacklist over auto
                 cfg["auto_blacklist"] = False

@@ -93,6 +93,8 @@ const translations = {
     logs_refresh: "Refresh",
     adv_title: "Advanced",
     adv_subtitle: "Fine-tune fragmentation and matching behavior.",
+    adv_mode: "Mode",
+    adv_mode_label: "Profile",
     adv_fragment: "Fragment Method",
     adv_fragment_label: "Method",
     adv_matching: "Domain Matching",
@@ -186,6 +188,8 @@ const translations = {
     logs_refresh: "Обновить",
     adv_title: "Расширенные",
     adv_subtitle: "Настройка фрагментации и матчинг режима.",
+    adv_mode: "Режим",
+    adv_mode_label: "Профиль",
     adv_fragment: "Метод фрагментации",
     adv_fragment_label: "Метод",
     adv_matching: "Сопоставление доменов",
@@ -279,6 +283,8 @@ const translations = {
     logs_refresh: "Actualizar",
     adv_title: "Avanzado",
     adv_subtitle: "Ajusta fragmentación y coincidencia.",
+    adv_mode: "Modo",
+    adv_mode_label: "Perfil",
     adv_fragment: "Método de fragmentación",
     adv_fragment_label: "Método",
     adv_matching: "Coincidencia de dominios",
@@ -372,6 +378,8 @@ const translations = {
     logs_refresh: "Aktualisieren",
     adv_title: "Erweitert",
     adv_subtitle: "Fragmentierung und Matching feintunen.",
+    adv_mode: "Modus",
+    adv_mode_label: "Profil",
     adv_fragment: "Fragment‑Methode",
     adv_fragment_label: "Methode",
     adv_matching: "Domain‑Matching",
@@ -551,6 +559,7 @@ const refreshConfig = async () => {
   document.getElementById("custom-domains").value = state.config.custom_domains.join("\n");
   document.getElementById("fragment-method").value = state.config.fragment_method || "random";
   document.getElementById("domain-matching").value = state.config.domain_matching || "strict";
+  document.getElementById("proxy-mode").value = state.config.mode || "custom";
   document.getElementById("auto-blacklist").checked = !!state.config.auto_blacklist;
   document.getElementById("no-blacklist").checked = !!state.config.no_blacklist;
   state.rules = state.config.rules || [];
@@ -856,6 +865,7 @@ const bindActions = () => {
   });
 
   document.getElementById("save-advanced").addEventListener("click", async () => {
+    const mode = document.getElementById("proxy-mode").value;
     const fragment_method = document.getElementById("fragment-method").value;
     const domain_matching = document.getElementById("domain-matching").value;
     let auto_blacklist = document.getElementById("auto-blacklist").checked;
@@ -864,6 +874,7 @@ const bindActions = () => {
       auto_blacklist = false;
     }
     await apiPost("/api/config", {
+      mode,
       fragment_method,
       domain_matching,
       auto_blacklist,

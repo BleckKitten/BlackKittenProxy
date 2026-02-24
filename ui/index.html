@@ -213,7 +213,7 @@
             <div class="about-grid">
               <div>
                 <h3 data-i18n="about_what_title">What it does</h3>
-                <p data-i18n="about_what_body">BlackKittenproxy wraps the NoDPI engine with a modern control room. Toggle curated unlock lists, apply custom domains, and manage your proxy port with a single click.</p>
+                <p data-i18n="about_what_body">BlackKittenproxy wraps the proxy engine with a modern control room. Toggle curated unlock lists, apply custom domains, and manage your proxy port with a single click.</p>
               </div>
               <div>
                 <h3 data-i18n="about_lists_title">Lists + Custom Domains</h3>
@@ -322,6 +322,21 @@
           </div>
           <div class="grid">
             <div class="card">
+              <div class="card-title" data-i18n="adv_mode">Mode</div>
+              <div class="form">
+                <label>
+                  <span data-i18n="adv_mode_label">Profile</span>
+                  <select id="proxy-mode">
+                    <option value="balanced">balanced</option>
+                    <option value="fast">fast</option>
+                    <option value="stealth">stealth</option>
+                    <option value="strict">strict</option>
+                    <option value="custom">custom</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+            <div class="card">
               <div class="card-title" data-i18n="adv_fragment">Fragment Method</div>
               <div class="form">
                 <label>
@@ -329,6 +344,8 @@
                   <select id="fragment-method">
                     <option value="random">random</option>
                     <option value="sni">sni</option>
+                    <option value="split">split</option>
+                    <option value="split-jitter">split-jitter</option>
                   </select>
                 </label>
               </div>
