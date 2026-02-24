@@ -1,0 +1,18 @@
+{
+  "host": "127.0.0.1",
+  "port": 8881,
+  "language": "auto",
+  "selected_lists": [
+    "facebook",
+    "instagram"
+  ],
+  "custom_domains": [],
+  "fragment_method": "split-jitter",
+  "domain_matching": "strict",
+  "auto_blacklist": false,
+  "no_blacklist": false,
+  "rules": [],
+  "mode": "custom",
+  "connect_timeout": null,
+  "initial_read_timeout": null
+}
