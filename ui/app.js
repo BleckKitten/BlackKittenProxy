@@ -49,6 +49,7 @@ const translations = {
     card_language: "Language",
     label_language: "Interface language",
     btn_save_language: "Save Language",
+    lang_auto: "Auto (system)",
     card_custom_domains: "Custom Domains",
     label_custom_domains: "Domains (one per line)",
     btn_save_custom: "Save Custom Domains",
@@ -137,6 +138,7 @@ const translations = {
     card_language: "Язык",
     label_language: "Язык интерфейса",
     btn_save_language: "Сохранить",
+    lang_auto: "Авто (система)",
     card_custom_domains: "Пользовательские домены",
     label_custom_domains: "Домены (по одному в строке)",
     btn_save_custom: "Сохранить",
@@ -225,6 +227,7 @@ const translations = {
     card_language: "Idioma",
     label_language: "Idioma de la interfaz",
     btn_save_language: "Guardar",
+    lang_auto: "Auto (sistema)",
     card_custom_domains: "Dominios personalizados",
     label_custom_domains: "Dominios (uno por línea)",
     btn_save_custom: "Guardar",
@@ -313,6 +316,7 @@ const translations = {
     card_language: "Sprache",
     label_language: "Sprache der Oberfläche",
     btn_save_language: "Speichern",
+    lang_auto: "Auto (System)",
     card_custom_domains: "Eigene Domains",
     label_custom_domains: "Domains (eine pro Zeile)",
     btn_save_custom: "Speichern",
@@ -375,6 +379,19 @@ const applyTranslations = (lang) => {
   if (activeNav) {
     document.getElementById("section-title").textContent = activeNav.textContent;
   }
+};
+
+const detectLanguage = () => {
+  const locale = (navigator.language || "en").toLowerCase();
+  const short = locale.split("-")[0];
+  return translations[short] ? short : "en";
+};
+
+const resolveLanguage = (lang) => {
+  if (!lang || lang === "auto") {
+    return detectLanguage();
+  }
+  return translations[lang] ? lang : "en";
 };
 
 const apiGet = async (path) => {
@@ -522,7 +539,7 @@ const refreshConfig = async () => {
   document.getElementById("no-blacklist").checked = !!state.config.no_blacklist;
   state.rules = state.config.rules || [];
   renderRules();
-  applyTranslations(state.config.language);
+  applyTranslations(resolveLanguage(state.config.language));
 };
 
 const refreshLists = async () => {
@@ -760,7 +777,7 @@ const bindActions = () => {
     const language = document.getElementById("language-select").value;
     await apiPost("/api/config", { language });
     await refreshConfig();
-    applyTranslations(language);
+    applyTranslations(resolveLanguage(language));
   });
 
   document.getElementById("save-custom").addEventListener("click", async () => {
