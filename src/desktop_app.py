@@ -33,6 +33,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="127.0.0.1", help="UI host")
     parser.add_argument("--port", type=int, default=9797, help="UI port")
+    parser.add_argument("--no-tray", action="store_true", help="Disable system tray icon")
+    parser.add_argument("--fullscreen", action="store_true", help="Start in fullscreen mode")
     return parser.parse_args()
 
 
@@ -55,6 +57,32 @@ def _build_tray_icon() -> Image.Image:
     draw.polygon([(64, 84), (58, 92), (70, 92)], fill=(255, 183, 3, 255))
     draw.line([(98, 108), (118, 120)], fill=(12, 12, 12, 255), width=10)
     return img
+
+
+class AppApi:
+    def __init__(self, window):
+        self._window = window
+
+    def toggle_fullscreen(self):
+        try:
+            self._window.toggle_fullscreen()
+        except Exception:
+            try:
+                self._window.fullscreen = not getattr(self._window, "fullscreen", False)
+            except Exception:
+                pass
+
+    def set_window_size(self, width: int, height: int):
+        try:
+            self._window.resize(width, height)
+        except Exception:
+            pass
+
+    def reset_window(self):
+        try:
+            self._window.resize(1200, 800)
+        except Exception:
+            pass
 
 
 class ConfigCache:
@@ -95,13 +123,21 @@ def main():
 
     url = f"http://{args.host}:{args.port}/"
     logging.info("UI server running at %s", url)
+    api = AppApi(None)
     window = webview.create_window(
         "BlackKittenproxy",
         url,
         width=1200,
         height=800,
         min_size=(980, 640),
+        js_api=api,
     )
+    api._window = window
+    if args.fullscreen:
+        try:
+            window.toggle_fullscreen()
+        except Exception:
+            pass
 
     tray_icon = None
     window_hidden = False
@@ -222,8 +258,9 @@ def main():
         status_thread.start()
         tray_icon.run()
 
-    tray_thread = threading.Thread(target=run_tray, daemon=True)
-    tray_thread.start()
+    if not args.no_tray:
+        tray_thread = threading.Thread(target=run_tray, daemon=True)
+        tray_thread.start()
 
     webview.start()
 

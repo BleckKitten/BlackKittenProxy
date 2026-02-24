@@ -34,6 +34,9 @@ const translations = {
     btn_refresh_lists: "Refresh Lists",
     btn_open_unlocked: "Open unlocked/",
     btn_open_blacklist: "Open GUI blacklist",
+    btn_fullscreen: "Fullscreen",
+    btn_compact: "Compact",
+    btn_reset_window: "Reset Size",
     unlock_title: "Unlock Lists",
     unlock_subtitle: "Each list is stored in `unlocked/` as a `.txt` file.",
     add_new_website: "Add New Website",
@@ -50,6 +53,7 @@ const translations = {
     label_language: "Interface language",
     btn_save_language: "Save Language",
     lang_auto: "Auto (system)",
+    card_window: "Window",
     card_custom_domains: "Custom Domains",
     label_custom_domains: "Domains (one per line)",
     btn_save_custom: "Save Custom Domains",
@@ -123,6 +127,9 @@ const translations = {
     btn_refresh_lists: "Обновить списки",
     btn_open_unlocked: "Открыть unlocked/",
     btn_open_blacklist: "Открыть GUI blacklist",
+    btn_fullscreen: "Полный экран",
+    btn_compact: "Компактно",
+    btn_reset_window: "Сбросить размер",
     unlock_title: "Списки разблокировки",
     unlock_subtitle: "Каждый список хранится в `unlocked/` как `.txt` файл.",
     add_new_website: "Добавить сайт",
@@ -139,6 +146,7 @@ const translations = {
     label_language: "Язык интерфейса",
     btn_save_language: "Сохранить",
     lang_auto: "Авто (система)",
+    card_window: "Окно",
     card_custom_domains: "Пользовательские домены",
     label_custom_domains: "Домены (по одному в строке)",
     btn_save_custom: "Сохранить",
@@ -212,6 +220,9 @@ const translations = {
     btn_refresh_lists: "Actualizar listas",
     btn_open_unlocked: "Abrir unlocked/",
     btn_open_blacklist: "Abrir GUI blacklist",
+    btn_fullscreen: "Pantalla completa",
+    btn_compact: "Compacto",
+    btn_reset_window: "Restablecer tamaño",
     unlock_title: "Listas de desbloqueo",
     unlock_subtitle: "Cada lista está en `unlocked/` como `.txt`.",
     add_new_website: "Agregar sitio",
@@ -228,6 +239,7 @@ const translations = {
     label_language: "Idioma de la interfaz",
     btn_save_language: "Guardar",
     lang_auto: "Auto (sistema)",
+    card_window: "Ventana",
     card_custom_domains: "Dominios personalizados",
     label_custom_domains: "Dominios (uno por línea)",
     btn_save_custom: "Guardar",
@@ -301,6 +313,9 @@ const translations = {
     btn_refresh_lists: "Listen aktualisieren",
     btn_open_unlocked: "unlocked/ öffnen",
     btn_open_blacklist: "GUI‑Blacklist öffnen",
+    btn_fullscreen: "Vollbild",
+    btn_compact: "Kompakt",
+    btn_reset_window: "Größe zurücksetzen",
     unlock_title: "Entsperrlisten",
     unlock_subtitle: "Jede Liste liegt in `unlocked/` als `.txt`.",
     add_new_website: "Website hinzufügen",
@@ -317,6 +332,7 @@ const translations = {
     label_language: "Sprache der Oberfläche",
     btn_save_language: "Speichern",
     lang_auto: "Auto (System)",
+    card_window: "Fenster",
     card_custom_domains: "Eigene Domains",
     label_custom_domains: "Domains (eine pro Zeile)",
     btn_save_custom: "Speichern",
@@ -531,7 +547,7 @@ const refreshConfig = async () => {
   document.getElementById("host-text").textContent = state.config.host;
   document.getElementById("host-input").value = state.config.host;
   document.getElementById("port-input").value = state.config.port;
-  document.getElementById("language-select").value = state.config.language;
+  document.getElementById("language-select").value = state.config.language || "auto";
   document.getElementById("custom-domains").value = state.config.custom_domains.join("\n");
   document.getElementById("fragment-method").value = state.config.fragment_method || "random";
   document.getElementById("domain-matching").value = state.config.domain_matching || "strict";
@@ -689,6 +705,24 @@ const drawGraph = () => {
   drawLine("ul", "rgba(207, 201, 196, 0.85)");
 };
 
+const toggleFullscreen = async () => {
+  if (window.pywebview && window.pywebview.api && window.pywebview.api.toggle_fullscreen) {
+    await window.pywebview.api.toggle_fullscreen();
+  }
+};
+
+const setCompactWindow = async () => {
+  if (window.pywebview && window.pywebview.api && window.pywebview.api.set_window_size) {
+    await window.pywebview.api.set_window_size(980, 640);
+  }
+};
+
+const resetWindow = async () => {
+  if (window.pywebview && window.pywebview.api && window.pywebview.api.reset_window) {
+    await window.pywebview.api.reset_window();
+  }
+};
+
 const initNav = () => {
   const buttons = document.querySelectorAll(".nav-item");
   const panels = document.querySelectorAll(".panel");
@@ -736,6 +770,18 @@ const bindActions = () => {
       await apiPost("/api/proxy/start");
     }
     await refreshStatus();
+  });
+
+  document.getElementById("toggle-fullscreen").addEventListener("click", async () => {
+    await toggleFullscreen();
+  });
+
+  document.getElementById("compact-window").addEventListener("click", async () => {
+    await setCompactWindow();
+  });
+
+  document.getElementById("reset-window").addEventListener("click", async () => {
+    await resetWindow();
   });
 
   document.getElementById("refresh-lists").addEventListener("click", async () => {
@@ -853,6 +899,12 @@ const init = async () => {
   }
   setInterval(refreshStats, 1000);
   window.addEventListener("resize", drawGraph);
+  window.addEventListener("keydown", async (event) => {
+    if (event.key === "F11") {
+      event.preventDefault();
+      await toggleFullscreen();
+    }
+  });
 };
 
 window.addEventListener("DOMContentLoaded", init);
