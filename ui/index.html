@@ -1,0 +1,361 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BlackKittenproxy</title>
+    <link rel="stylesheet" href="/ui/styles.css" />
+    <link rel="icon" type="image/svg+xml" href="/assets/blackkitten.svg" />
+  </head>
+  <body>
+    <div class="ambient">
+      <span class="blob blob-a"></span>
+      <span class="blob blob-b"></span>
+      <span class="blob blob-c"></span>
+    </div>
+
+    <div class="loading-overlay" id="loading-overlay">
+      <div class="loading-card">
+        <div class="loading-emoji">🐈‍⬛</div>
+        <div class="loading-title">BlackKittenproxy</div>
+        <div class="loading-sub">Warming up the tunnels…</div>
+      </div>
+    </div>
+
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <img src="/assets/blackkitten.svg" alt="BlackKittenproxy" />
+          <div>
+            <div class="brand-title">BlackKittenproxy</div>
+            <div class="brand-sub">Unlock with precision</div>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <button class="nav-item active" data-section="dashboard" data-i18n="nav_dashboard">Dashboard</button>
+          <button class="nav-item" data-section="unlock" data-i18n="nav_unlock">Unlock Lists</button>
+          <button class="nav-item" data-section="settings" data-i18n="nav_settings">Settings</button>
+          <button class="nav-item" data-section="about" data-i18n="nav_about">About</button>
+          <button class="nav-item" data-section="rules" data-i18n="nav_rules">Rules</button>
+          <button class="nav-item" data-section="diagnostics" data-i18n="nav_diagnostics">Diagnostics</button>
+          <button class="nav-item" data-section="logs" data-i18n="nav_logs">Logs</button>
+          <button class="nav-item" data-section="advanced" data-i18n="nav_advanced">Advanced</button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="status-pill" id="status-pill">Stopped</div>
+          <button class="ghost" id="toggle-proxy">Start Proxy</button>
+        </div>
+      </aside>
+
+      <main class="content">
+        <header class="topbar">
+          <div>
+            <h1 id="section-title">Dashboard</h1>
+            <p class="subtitle" data-i18n="subtitle">Smooth DPI bypass, curated by your own lists.</p>
+          </div>
+          <div class="top-actions">
+            <div class="badge" id="proxy-badge">Offline</div>
+            <button class="primary" id="top-toggle">Start</button>
+          </div>
+        </header>
+
+        <section class="panel active" id="dashboard">
+          <div class="grid">
+            <div class="card highlight">
+              <div class="card-title" data-i18n="card_proxy_status">Proxy Status</div>
+              <div class="card-value" id="status-text">Stopped</div>
+              <div class="card-meta" id="status-meta">Not running</div>
+            </div>
+            <div class="card">
+              <div class="card-title" data-i18n="card_active_port">Active Port</div>
+              <div class="card-value" id="port-text">8881</div>
+              <div class="card-meta" id="host-text">127.0.0.1</div>
+            </div>
+            <div class="card">
+              <div class="card-title" data-i18n="card_unlocked_lists">Unlocked Lists</div>
+              <div class="card-value" id="list-count">0</div>
+              <div class="card-meta" data-i18n="card_enabled_lists">Enabled lists</div>
+            </div>
+            <div class="card">
+              <div class="card-title" data-i18n="card_fragment_method">Fragment Method</div>
+              <div class="card-value" id="fragment-text">—</div>
+              <div class="card-meta" data-i18n="card_sni_strategy">SNI strategy</div>
+            </div>
+            <div class="card">
+              <div class="card-title" data-i18n="card_connections">Connections</div>
+              <div class="card-value" id="connections-text">0</div>
+              <div class="card-meta" id="connections-meta">Allowed 0 · Unblocked 0 · Errors 0</div>
+            </div>
+            <div class="card highlight">
+              <div class="card-title" data-i18n="card_efficiency">Efficiency</div>
+              <div class="card-value" id="efficiency-text">0%</div>
+              <div class="card-meta" id="efficiency-meta" data-i18n="card_efficiency_meta">Unblocked / total</div>
+            </div>
+            <div class="card">
+              <div class="card-title" data-i18n="card_live_speed">Live Speed</div>
+              <div class="card-value" id="speed-text">0 b/s</div>
+              <div class="card-meta" id="speed-meta">DL 0 b/s · UL 0 b/s</div>
+            </div>
+            <div class="card wide">
+              <div class="card-title" data-i18n="card_traffic_graph">Traffic Graph</div>
+              <div class="graph-wrap">
+                <canvas id="traffic-graph" width="900" height="200"></canvas>
+                <div class="graph-legend">
+                  <span class="legend dl">DL</span>
+                  <span class="legend ul">UL</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card wide">
+              <div class="card-title" data-i18n="card_quick_actions">Quick Actions</div>
+            <div class="quick-actions">
+              <button class="ghost" id="refresh-lists" data-i18n="btn_refresh_lists">Refresh Lists</button>
+              <button class="ghost" id="open-unlocked" data-i18n="btn_open_unlocked">Open unlocked/</button>
+              <button class="ghost" id="open-blacklist" data-i18n="btn_open_blacklist">Open GUI blacklist</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="unlock">
+          <div class="section-header">
+            <h2 data-i18n="unlock_title">Unlock Lists</h2>
+            <p data-i18n="unlock_subtitle">Each list is stored in `unlocked/` as a `.txt` file.</p>
+          </div>
+
+          <div class="grid" id="lists-grid"></div>
+
+          <div class="card wide">
+            <div class="card-title" data-i18n="add_new_website">Add New Website</div>
+            <div class="form">
+              <label>
+                <span data-i18n="label_list_name">List name</span>
+                <input id="new-list-name" placeholder="instagram" />
+              </label>
+              <label>
+                <span data-i18n="label_domains">Domains (one per line)</span>
+                <textarea id="new-list-domains" rows="4" placeholder="instagram.com\ncdninstagram.com"></textarea>
+              </label>
+              <button class="primary" id="add-list" data-i18n="btn_add_list">Add List</button>
+              <div class="form-hint" id="add-list-hint"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="settings">
+          <div class="section-header">
+            <h2 data-i18n="settings_title">Settings</h2>
+            <p data-i18n="settings_subtitle">Configure ports, language, and custom domains.</p>
+          </div>
+          <div class="grid">
+            <div class="card">
+              <div class="card-title" data-i18n="card_proxy_network">Proxy Network</div>
+              <div class="form">
+                <label>
+                  <span data-i18n="label_host">Host</span>
+                  <input id="host-input" placeholder="127.0.0.1" />
+                </label>
+                <label>
+                  <span data-i18n="label_port">Port</span>
+                  <input id="port-input" type="number" placeholder="8881" />
+                </label>
+                <button class="primary" id="save-network" data-i18n="btn_save_network">Save Network</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title" data-i18n="card_language">Language</div>
+              <div class="form">
+                <label>
+                  <span data-i18n="label_language">Interface language</span>
+                  <select id="language-select">
+                    <option value="en">English</option>
+                    <option value="ru">Russian</option>
+                    <option value="es">Spanish</option>
+                    <option value="de">German</option>
+                  </select>
+                </label>
+                <button class="primary" id="save-language" data-i18n="btn_save_language">Save Language</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card wide">
+            <div class="card-title" data-i18n="card_custom_domains">Custom Domains</div>
+            <div class="form">
+              <label>
+                <span data-i18n="label_custom_domains">Domains (one per line)</span>
+                <textarea id="custom-domains" rows="6" placeholder="example.com\nassets.example.com"></textarea>
+              </label>
+              <button class="primary" id="save-custom" data-i18n="btn_save_custom">Save Custom Domains</button>
+              <div class="form-hint" id="custom-hint"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="about">
+          <div class="section-header">
+            <h2 data-i18n="about_title">About BlackKittenproxy</h2>
+            <p data-i18n="about_subtitle">Desktop control center for your DPI-bypass proxy.</p>
+          </div>
+          <div class="card wide">
+            <div class="about-grid">
+              <div>
+                <h3 data-i18n="about_what_title">What it does</h3>
+                <p data-i18n="about_what_body">BlackKittenproxy wraps the NoDPI engine with a modern control room. Toggle curated unlock lists, apply custom domains, and manage your proxy port with a single click.</p>
+              </div>
+              <div>
+                <h3 data-i18n="about_lists_title">Lists + Custom Domains</h3>
+                <p data-i18n="about_lists_body">Each `.txt` file in `unlocked/` becomes a curated list. Enable the lists you want, and BlackKittenproxy will build a fresh blacklist file for the proxy.</p>
+              </div>
+              <div>
+                <h3 data-i18n="about_design_title">Design cues</h3>
+                <p data-i18n="about_design_body">The layout takes inspiration from VPN dashboards like AmneziaVPN, with an atmospheric gradient, bold typography, and confident controls.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="rules">
+          <div class="section-header">
+            <h2 data-i18n="rules_title">Rules</h2>
+            <p data-i18n="rules_subtitle">Override fragmentation per domain.</p>
+          </div>
+          <div class="card wide">
+            <div class="card-title" data-i18n="rules_list">Rule List</div>
+            <div id="rules-list" class="rules-list"></div>
+          </div>
+          <div class="card wide">
+            <div class="card-title" data-i18n="rules_add">Add Rule</div>
+            <div class="form">
+              <label>
+                <span data-i18n="rules_domain">Domain / Pattern</span>
+                <input id="rule-domain" placeholder="example.com or *.example.com" />
+              </label>
+              <label>
+                <span data-i18n="rules_action">Action</span>
+                <select id="rule-action">
+                  <option value="auto">auto</option>
+                  <option value="force">force fragment</option>
+                  <option value="bypass">bypass fragment</option>
+                </select>
+              </label>
+              <label>
+                <span data-i18n="rules_method">Fragment Method</span>
+                <select id="rule-method">
+                  <option value="">default</option>
+                  <option value="random">random</option>
+                  <option value="sni">sni</option>
+                </select>
+              </label>
+              <button class="primary" id="add-rule" data-i18n="rules_add_btn">Add Rule</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="diagnostics">
+          <div class="section-header">
+            <h2 data-i18n="diag_title">Diagnostics</h2>
+            <p data-i18n="diag_subtitle">Quick health checks for the proxy and lists.</p>
+          </div>
+          <div class="grid">
+            <div class="card">
+              <div class="card-title" data-i18n="diag_running">Proxy Running</div>
+              <div class="card-value" id="diag-running">—</div>
+            </div>
+            <div class="card">
+              <div class="card-title" data-i18n="diag_port">Port Open</div>
+              <div class="card-value" id="diag-port">—</div>
+            </div>
+            <div class="card">
+              <div class="card-title" data-i18n="diag_stats_age">Stats Age</div>
+              <div class="card-value" id="diag-stats-age">—</div>
+            </div>
+            <div class="card">
+              <div class="card-title" data-i18n="diag_blacklist">Blacklist Entries</div>
+              <div class="card-value" id="diag-blacklist">0</div>
+            </div>
+            <div class="card">
+              <div class="card-title" data-i18n="diag_lists">List Files</div>
+              <div class="card-value" id="diag-lists">0</div>
+            </div>
+          </div>
+          <div class="card wide">
+            <div class="card-title" data-i18n="diag_actions">Actions</div>
+            <div class="quick-actions">
+              <button class="ghost" id="run-diagnostics" data-i18n="diag_run">Run Diagnostics</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="logs">
+          <div class="section-header">
+            <h2 data-i18n="logs_title">Logs</h2>
+            <p data-i18n="logs_subtitle">Latest access and error logs from the proxy.</p>
+          </div>
+          <div class="card wide">
+            <div class="card-title" data-i18n="logs_controls">Log Controls</div>
+            <div class="quick-actions">
+              <button class="ghost" id="logs-access" data-i18n="logs_access">Access Log</button>
+              <button class="ghost" id="logs-error" data-i18n="logs_error">Error Log</button>
+              <button class="ghost" id="logs-refresh" data-i18n="logs_refresh">Refresh</button>
+            </div>
+            <pre class="log-view" id="logs-output"></pre>
+          </div>
+        </section>
+
+        <section class="panel" id="advanced">
+          <div class="section-header">
+            <h2 data-i18n="adv_title">Advanced</h2>
+            <p data-i18n="adv_subtitle">Fine-tune fragmentation and matching behavior.</p>
+          </div>
+          <div class="grid">
+            <div class="card">
+              <div class="card-title" data-i18n="adv_fragment">Fragment Method</div>
+              <div class="form">
+                <label>
+                  <span data-i18n="adv_fragment_label">Method</span>
+                  <select id="fragment-method">
+                    <option value="random">random</option>
+                    <option value="sni">sni</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title" data-i18n="adv_matching">Domain Matching</div>
+              <div class="form">
+                <label>
+                  <span data-i18n="adv_matching_label">Mode</span>
+                  <select id="domain-matching">
+                    <option value="strict">strict</option>
+                    <option value="loose">loose</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="card wide">
+            <div class="card-title" data-i18n="adv_flags">Flags</div>
+            <div class="form">
+              <label class="inline">
+                <input type="checkbox" id="auto-blacklist" />
+                <span data-i18n="adv_auto_blacklist">Auto blacklist</span>
+              </label>
+              <label class="inline">
+                <input type="checkbox" id="no-blacklist" />
+                <span data-i18n="adv_no_blacklist">No blacklist (apply to all)</span>
+              </label>
+              <button class="primary" id="save-advanced" data-i18n="adv_save">Save Advanced</button>
+              <div class="form-hint" id="advanced-hint"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/ui/app.js"></script>
+  </body>
+</html>

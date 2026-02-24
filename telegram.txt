@@ -1,0 +1,16 @@
+web.telegram.org
+zws2.web.telegram.org
+t.me
+telesco.pe
+tx.me
+tg.dev
+telegra.ph
+nicegram.app
+telegram.org
+telegram.cat
+telegram.hr
+telegram.dog
+telegram.me
+cdn-telegram.org
+telegram-cdn.org
+fragment.com
