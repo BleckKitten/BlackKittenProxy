@@ -727,6 +727,7 @@ const initNav = () => {
   const buttons = document.querySelectorAll(".nav-item");
   const panels = document.querySelectorAll(".panel");
   const title = document.getElementById("section-title");
+  const content = document.querySelector(".content");
 
   buttons.forEach((btn) => {
     btn.addEventListener("click", async () => {
@@ -738,6 +739,9 @@ const initNav = () => {
       if (target) {
         target.classList.add("active");
         title.textContent = btn.textContent;
+      }
+      if (content) {
+        content.scrollTop = 0;
       }
 
       if (btn.dataset.section === "diagnostics") {
