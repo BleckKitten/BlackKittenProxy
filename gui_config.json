@@ -7,7 +7,7 @@
     "instagram"
   ],
   "custom_domains": [],
-  "fragment_method": "split-jitter",
+  "fragment_method": "random",
   "domain_matching": "strict",
   "auto_blacklist": false,
   "no_blacklist": false,
