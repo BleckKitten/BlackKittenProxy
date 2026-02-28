@@ -1,4 +1,4 @@
-﻿# AGENTS.md instructions for C:\Users\gryaz\Desktop\PycharmProjects\BlackKittenProxy
+﻿# AGENTS.md instructions for
 
 <INSTRUCTIONS>
 # Repository Guidelines
